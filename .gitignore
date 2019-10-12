@@ -1,0 +1,9 @@
+*.o
+*.d
+*-wasm.js
+*.wasm
+.*.swp
+/build_filelist
+/splitimg
+/temu
+

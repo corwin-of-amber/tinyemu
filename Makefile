@@ -25,6 +25,8 @@
 # if set, network filesystem is enabled. libcurl and libcrypto
 # (openssl) must be installed.
 CONFIG_FS_NET=y
+# Host filesystem access
+CONFIG_FS_HOST=y
 # SDL support (optional)
 CONFIG_SDL=y
 # if set, compile the 128 bit emulator. Note: the 128 bit target does
@@ -34,6 +36,8 @@ CONFIG_INT128=y
 CONFIG_X86EMU=y
 # win32 build (not usable yet)
 #CONFIG_WIN32=y
+# macos build (no networking)
+#CONFIG_MACOS=y
 # user space network redirector
 CONFIG_SLIRP=y
 
@@ -71,8 +75,9 @@ EMU_OBJS+=$(addprefix slirp/, bootp.o ip_icmp.o mbuf.o slirp.o tcp_output.o cksu
 endif
 
 ifndef CONFIG_WIN32
-EMU_OBJS+=fs_disk.o
+ifndef CONFIG_MACOS
 EMU_LIBS=-lrt
+endif
 endif
 ifdef CONFIG_FS_NET
 CFLAGS+=-DCONFIG_FS_NET
@@ -82,6 +87,12 @@ ifdef CONFIG_WIN32
 EMU_LIBS+=-lwsock32
 endif # CONFIG_WIN32
 endif # CONFIG_FS_NET
+
+ifdef CONFIG_FS_HOST
+EMU_OBJS+=fs_disk.o
+CFLAGS+=-DCONFIG_FS_HOST
+endif # CONFIG_FS_HOST
+
 ifdef CONFIG_SDL
 EMU_LIBS+=-lSDL
 EMU_OBJS+=sdl.o
@@ -102,6 +113,12 @@ ifdef CONFIG_X86EMU
 CFLAGS+=-DCONFIG_X86EMU
 EMU_OBJS+=x86_cpu.o x86_machine.o ide.o ps2.o vmmouse.o pckbd.o vga.o
 endif
+
+# For MacPorts
+ifdef CONFIG_MACOS
+CFLAGS+=-I/opt/local/include
+LDFLAGS+=-L/opt/local/lib
+endif # CONFIG_MACOS
 
 temu$(EXE): $(EMU_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(EMU_LIBS)

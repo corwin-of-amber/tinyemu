@@ -36,7 +36,10 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#ifndef __APPLE__
 #include <linux/if_tun.h>
+#define HAS_TUN
+#endif
 #endif
 #include <sys/stat.h>
 #include <signal.h>
@@ -346,7 +349,7 @@ static BlockDevice *block_device_init(const char *filename,
     return bs;
 }
 
-#ifndef _WIN32
+#ifdef HAS_TUN
 
 typedef struct {
     int fd;
@@ -763,7 +766,7 @@ int main(int argc, char **argv)
         } else
 #endif
         {
-#ifdef _WIN32
+#ifndef CONFIG_FS_HOST
             fprintf(stderr, "Filesystem access not supported yet\n");
             exit(1);
 #else
@@ -788,7 +791,7 @@ int main(int argc, char **argv)
                 exit(1);
         } else
 #endif
-#ifndef _WIN32
+#ifdef HAS_TUN
         if (!strcmp(p->tab_eth[i].driver, "tap")) {
             p->tab_eth[i].net = tun_open(p->tab_eth[i].ifname);
             if (!p->tab_eth[i].net)

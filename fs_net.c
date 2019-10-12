@@ -934,7 +934,7 @@ static void fs_preload_archive(FSDevice *fs1, const char *filename)
         /* check archive size consistency */
         if (offset != n->u.reg.size) {
 #if defined(DEBUG_CACHE)
-            printf("  inconsistent archive size: %" PRId64 " %" PRId64 "\n",
+            printf("  inconsistent archive size: %" PRId64 " %zu\n",
                    offset, n->u.reg.size);
 #endif
             goto load_fallback;
@@ -1783,11 +1783,11 @@ static void dump_loaded_file(FSDevice *fs1, FSINode *n)
     if (n->u.reg.size >= ARCHIVE_SIZE_MAX) {
         /* exclude large files from archive */
         /* add indicative size */
-        fprintf(fs->dump_preload_file, "  %s %" PRId64 "\n",
+        fprintf(fs->dump_preload_file, "  %s %zu\n",
                 fname, n->u.reg.size);
         fflush(fs->dump_preload_file);
     } else {
-        fprintf(fs->dump_preload_archive_file, "  %s %" PRId64 " %" PRIx64 "\n",
+        fprintf(fs->dump_preload_archive_file, "  %s %zu %" PRIx64 "\n",
                 n->u.reg.filename, n->u.reg.size, n->u.reg.file_id);
         fflush(fs->dump_preload_archive_file);
         fwrite(n->u.reg.fbuf.data, 1, n->u.reg.size, fs->dump_archive_file);

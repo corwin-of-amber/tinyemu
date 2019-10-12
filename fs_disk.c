@@ -27,9 +27,14 @@
 #include <inttypes.h>
 #include <assert.h>
 #include <stdarg.h>
+#ifdef __APPLE__
+#include <sys/param.h>
+#include <sys/mount.h>
+#else
 #include <sys/statfs.h>
-#include <sys/stat.h>
 #include <sys/sysmacros.h>
+#endif
+#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
@@ -38,6 +43,16 @@
 #include "cutils.h"
 #include "list.h"
 #include "fs.h"
+
+#ifdef __APPLE__
+#define _st_atime(st) st.st_atimespec
+#define _st_mtime(st) st.st_mtimespec
+#define _st_ctime(st) st.st_ctimespec
+#else
+#define _st_atime(st) st.st_atim
+#define _st_mtime(st) st.st_mtim
+#define _st_ctime(st) st.st_ctim
+#endif
 
 typedef struct {
     FSDevice common;
@@ -400,12 +415,12 @@ static int fs_stat(FSDevice *fs, FSFile *f, FSStat *st)
     st->st_size = st1.st_size;
     st->st_blksize = st1.st_blksize;
     st->st_blocks = st1.st_blocks;
-    st->st_atime_sec = st1.st_atim.tv_sec;
-    st->st_atime_nsec = st1.st_atim.tv_nsec;
-    st->st_mtime_sec = st1.st_mtim.tv_sec;
-    st->st_mtime_nsec = st1.st_mtim.tv_nsec;
-    st->st_ctime_sec = st1.st_ctim.tv_sec;
-    st->st_ctime_nsec = st1.st_ctim.tv_nsec;
+    st->st_atime_sec = _st_atime(st1).tv_sec;
+    st->st_atime_nsec = _st_atime(st1).tv_nsec;
+    st->st_mtime_sec = _st_mtime(st1).tv_sec;
+    st->st_mtime_nsec = _st_mtime(st1).tv_nsec;
+    st->st_ctime_sec = _st_ctime(st1).tv_sec;
+    st->st_ctime_nsec = _st_ctime(st1).tv_nsec;
     return 0;
 }
 

@@ -27,16 +27,27 @@
 #include <inttypes.h>
 #include <assert.h>
 #include <stdarg.h>
+#ifdef __APPLE__
+#include <sys/param.h>
+#include <sys/mount.h>
+#else
 #include <sys/statfs.h>
+#include <sys/sysmacros.h>
+#endif
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
-#include <sys/sysmacros.h>
 
 #include "cutils.h"
 #include "fs_utils.h"
+
+#ifdef __APPLE__
+#define _st_mtime(st) st.st_mtimespec
+#else
+#define _st_mtime(st) st.st_mtim
+#endif
 
 void print_str(FILE *f, const char *str)
 {
@@ -155,8 +166,8 @@ void scan_dir(ScanState *s, const char *path)
             fprintf(f, " %" PRIu64, st.st_size);
         }
         /* modification time (at most ms resolution) */
-        fprintf(f, " %u", (int)st.st_mtim.tv_sec);
-        v = st.st_mtim.tv_nsec;
+        fprintf(f, " %u", (int)_st_mtime(st).tv_sec);
+        v = _st_mtime(st).tv_nsec;
         if (v != 0) {
             fprintf(f, ".");
             while (v != 0) {
